@@ -1,0 +1,20 @@
+<resources>
+    <string name="app_name">Test</string>
+    <string name="label_map">Map</string>
+    <string name="label_users">Users</string>
+    <string name="color">Color</string>
+    <string name="refresh">Refresh</string>
+
+    <string name="error_invalid_response">Incorrect data from server</string>
+    <string name="error_bad_connection">Connection error. May be you have a bad internet connection</string>
+    <string name="error_unknown_user_id">Unknown user</string>
+    <string name="error_unknown_device_location">Can not create route: unknown device location</string>
+    <string name="error_unknown_vehicle_locations">Unknown vehicle locations</string>
+    <string name="error_unknown">There is something wrong</string>
+
+    <string name="setting">Settings</string>
+    <string name="cancel">Cancel</string>
+    <string name="permissions_required">This app needs access to Internet, external storage and your location.</string>
+    <string name="permissions_ask_again">This app will not work correctly without the requested permissions. Open the app settings screen to modify app permissions.</string>
+
+</resources>

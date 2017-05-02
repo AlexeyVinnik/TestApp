@@ -1,2 +1,5 @@
-# TestApp
-Test application with two screens. The first one contains a list of users. The second one contans google map and markers for specific positions.
+# TestApp. Displaying list of users and their vehicles.
+
+1. Clone the project.
+2. Open the project in Android Studio and specify sdk.dir in local.properties file.
+3. Run the application (Run -> Run'app' or press Shift+F10).
