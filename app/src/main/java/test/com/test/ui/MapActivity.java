@@ -311,6 +311,20 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
     public void onDestroy() {
         mVehicleStorage = null;
         mHandler.removeCallbacks(mUpdatePosRunnable);
+        mHandler = null;
+
+        if (mGetVehicleLocationsAsyncTask != null) {
+            mGetVehicleLocationsAsyncTask.cancel(false);
+            mGetVehicleLocationsAsyncTask = null;
+        }
+        if (mSaveVehicleLocationsAsyncTask != null) {
+            mSaveVehicleLocationsAsyncTask.cancel(false);
+            mSaveVehicleLocationsAsyncTask = null;
+        }
+
+        mLocationManager.removeUpdates(mLocListener);
+        mLocListener = null;
+        mLocationManager = null;
         NetAPI.getInstance(this).getRequestQueue().cancelAll(UPDATE_LOCATION_TAG);
 
         Logger.log("Vehicle location update stopped");
