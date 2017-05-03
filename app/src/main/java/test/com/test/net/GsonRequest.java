@@ -39,7 +39,7 @@ public class GsonRequest<T> extends Request<T> {
         try {
             String jsonString = new String(
                     response.data,
-                    HttpHeaderParser.parseCharset(response.headers));
+                    HttpHeaderParser.parseCharset(response.headers, "UTF-8"));
 
             T object = gson.fromJson(jsonString, clazz);
             return Response.success(object, HttpHeaderParser.parseCacheHeaders(response));
