@@ -1,36 +1,25 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:background="?android:attr/selectableItemBackground"
-    android:clickable="true"
-    android:focusable="true"
-    android:gravity="center_vertical|left"
-    android:paddingLeft="@dimen/activity_horizontal_margin"
-    android:paddingRight="@dimen/activity_horizontal_margin"
-    android:orientation="vertical">
+    android:padding="12dp"
+    android:gravity="center_vertical|start"
+    android:background="@drawable/bg_clickable_selector"
+    android:orientation="horizontal">
 
-    <LinearLayout
+    <de.hdodenhof.circleimageview.CircleImageView
+        android:id="@+id/user_icon"
+        android:layout_width="@dimen/user_item_image_size"
+        android:layout_height="@dimen/user_item_image_size"
+        android:layout_margin="4dp"
+        android:scaleType="centerCrop"
+        android:src="@drawable/unknown_user" />
+
+    <TextView
+        android:id="@+id/user_name"
+        style="@style/UserItem"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:gravity="center_vertical|left"
-        android:orientation="horizontal">
-
-        <com.android.volley.toolbox.NetworkImageView
-            android:id="@+id/user_icon"
-            android:layout_margin="4dp"
-            android:layout_width="@dimen/user_item_image_size"
-            android:layout_height="@dimen/user_item_image_size"
-            android:scaleType="centerCrop"
-            android:src="@drawable/unknown_user"/>
-
-        <TextView
-            android:id="@+id/user_name"
-            style="@style/UserItem"
-            android:layout_marginLeft="12dp"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:gravity="center_vertical|left"/>
-    </LinearLayout>
+        android:layout_height="match_parent"
+        android:layout_marginLeft="12dp"
+        android:gravity="center_vertical|start" />
 </LinearLayout>
