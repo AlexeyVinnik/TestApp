@@ -58,7 +58,7 @@ public class UserListAdapter extends RecyclerView.Adapter<UserListAdapter.ViewHo
 
             @Override
             public void onErrorResponse(VolleyError error) {
-                //do nothing
+                holder.mUserImage.setImageDrawable(mContext.getResources().getDrawable(R.drawable.unknown_user));
             }
         });
 
@@ -66,7 +66,7 @@ public class UserListAdapter extends RecyclerView.Adapter<UserListAdapter.ViewHo
             @Override
             public void onClick(View view) {
                 Intent intent = new Intent(mContext, MapActivity.class);
-                intent.putExtra(MapActivity.EXTRA_USER_ID, item.userid);
+                intent.putExtra(MapActivity.EXTRA_USER_ID, item.userId);
 
                 mContext.startActivity(intent);
             }

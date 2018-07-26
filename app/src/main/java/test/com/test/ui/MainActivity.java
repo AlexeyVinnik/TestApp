@@ -24,6 +24,7 @@ import java.util.Date;
 import java.util.List;
 
 import pub.devrel.easypermissions.EasyPermissions;
+import test.com.test.App;
 import test.com.test.R;
 import test.com.test.database.BaseStorage;
 import test.com.test.database.UserStorage;
@@ -96,26 +97,26 @@ public class MainActivity extends AppCompatActivity implements EasyPermissions.P
 
     private void getUsersData() {
         Date today = Utils.getDateFromString(Utils.getStringDate(new Date())); // to get date without any count of hours
-        Date last = PrefUtils.getUsersLoadingDate(this);
+        Date lastSyncDay = Utils.getDateFromString(PrefUtils.getUsersLoadingDate(this));
 
-        if (last == null || last.before(today)) {
-            Logger.log("User list is expired. Trying to update from the server.");
+        if (lastSyncDay == null || lastSyncDay.before(today)) {
+            Logger.log("User list is expired. Trying to update from the server...");
 
             GsonRequest getUserRequest = new GsonRequest<>(URLs.getUserListURL(), Request.Method.GET, UserData.class,
                     new Response.Listener<UserData>() {
                         @Override
                         public void onResponse(UserData response) {
-                            PrefUtils.saveUsersLoadingTime(MainActivity.this, new Date());
+                            PrefUtils.saveUsersLoadingTime(MainActivity.this, Utils.getStringDate(new Date()));
 
                             cancelSaveTask(false);
 
                             for (UserInfo userInfo : response.data) {
-                                if (userInfo.userid < 1) {
+                                if (userInfo.userId < 1) {
                                     response.data.remove(userInfo);
                                 }
                             }
 
-                            mDBSaveTask = new SaveUsersAsyncTask(MainActivity.this, response.data);
+                            mDBSaveTask = new SaveUsersAsyncTask(response.data);
                             mDBSaveTask.execute();
 
                             mAdapter.setDataSet(response.data);
@@ -139,7 +140,7 @@ public class MainActivity extends AppCompatActivity implements EasyPermissions.P
         } else {
             cancelLoadTask(false);
 
-            mDBLoadTask = new GetUsersAsyncTask(MainActivity.this);
+            mDBLoadTask = new GetUsersAsyncTask();
             mDBLoadTask.execute();
         }
     }
@@ -219,6 +220,7 @@ public class MainActivity extends AppCompatActivity implements EasyPermissions.P
             }
             break;
             case R.id.btn_refresh_list:
+                mBtnRefresh.setVisibility(View.GONE);
                 getUsersData();
                 break;
             default:
@@ -226,39 +228,34 @@ public class MainActivity extends AppCompatActivity implements EasyPermissions.P
         }
     }
 
-    private class SaveUsersAsyncTask extends AsyncTask<Void, Void, Void> {
+    private static class SaveUsersAsyncTask extends AsyncTask<Void, Void, Void> {
 
-        private Context mCtx;
         private ArrayList<UserInfo> mUserList;
 
-        public SaveUsersAsyncTask(Context ctx, ArrayList<UserInfo> userList) {
-            mCtx = ctx;
+        public SaveUsersAsyncTask(ArrayList<UserInfo> userList) {
             mUserList = userList;
         }
 
         @Override
         protected Void doInBackground(Void... voids) {
 
-            if (mCtx != null) {
-                UserStorage userStorage = BaseStorage.getInstance(mCtx).getUserStorage();
-                VehicleStorage vehicleStorage = BaseStorage.getInstance(mCtx).getVehicleStorage();
+            UserStorage userStorage = BaseStorage.getInstance(App.getInstance()).getUserStorage();
+            VehicleStorage vehicleStorage = BaseStorage.getInstance(App.getInstance()).getVehicleStorage();
 
-                int updatedUserCount = 0;
-                for (UserInfo userInfo : mUserList) {
-                    userStorage.addUser(userInfo);
+            int updatedUserCount = 0;
+            for (UserInfo userInfo : mUserList) {
+                userStorage.addUser(userInfo);
 
-                    for (Vehicle vehicle : userInfo.vehicles) {
-                        if (vehicle.vehicleid > 0) {
-                            vehicleStorage.addVehicle(vehicle, userInfo.userid);
-                        }
+                for (Vehicle vehicle : userInfo.vehicles) {
+                    if (vehicle.vehicleid > 0) {
+                        vehicleStorage.addVehicle(vehicle, userInfo.userId);
                     }
-
-                    updatedUserCount++;
                 }
-                Logger.log("Updated user count: " + updatedUserCount);
-            } else {
-                Logger.log("Error with saving users to database: Context is null");
+
+                updatedUserCount++;
             }
+            Logger.log("Updated user count: " + updatedUserCount);
+
             return null;
         }
     }
@@ -266,26 +263,19 @@ public class MainActivity extends AppCompatActivity implements EasyPermissions.P
     private class GetUsersAsyncTask extends AsyncTask<Void, Void, Void> {
 
         private ArrayList<UserInfo> mUserList;
-        private Context mCtx;
-
-        public GetUsersAsyncTask(Context ctx) {
-            mCtx = ctx;
-        }
 
         @Override
         protected void onPreExecute() {
             super.onPreExecute();
 
-            if (this.mCtx != null && mProgressBar != null) {
+            if (mProgressBar != null) {
                 mProgressBar.setVisibility(View.VISIBLE);
             }
         }
 
         @Override
         protected Void doInBackground(Void... voids) {
-            if (mCtx != null) {
-                mUserList = BaseStorage.getInstance(mCtx).getUserStorage().getAllUserInfo();
-            }
+            mUserList = BaseStorage.getInstance(App.getInstance()).getUserStorage().getAllUserInfo();
             return null;
         }
 
@@ -293,14 +283,14 @@ public class MainActivity extends AppCompatActivity implements EasyPermissions.P
         protected void onPostExecute(Void aVoid) {
             super.onPostExecute(aVoid);
 
-            if (this.mCtx != null && mProgressBar != null && mAdapter != null) {
+            if (mProgressBar != null && mAdapter != null) {
                 mAdapter.setDataSet(mUserList);
 
                 mProgressBar.setVisibility(View.GONE);
 
                 showEmptyViewIfNeed();
             } else {
-                Logger.log("Error with getting users from database: Context is null.");
+                Logger.log("Can not update users list.");
             }
         }
     }

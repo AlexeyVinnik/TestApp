@@ -8,15 +8,22 @@
     android:visibility="gone"
     android:orientation="vertical">
 
+    <ImageView
+        android:src="@drawable/warning"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content" />
+
     <TextView
         android:text="@string/permissions_ask_again"
         android:layout_margin="@dimen/activity_horizontal_margin"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"/>
+        android:layout_height="wrap_content"
+        android:gravity="center"/>
 
     <Button
         android:id="@+id/btn_request_permissions"
         android:text="@string/setting"
+        android:background="@drawable/btn_bg_selector"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"/>
 

@@ -7,5 +7,7 @@
 
     <color name="gray">#2A2A2A</color>
     <color name="transparentGray">#99FFFFFF</color>
+    <color name="btn_bg_normal">#d1d1d1</color>
+    <color name="btn_bg_pressed">#FFB4B4B4</color>
 
 </resources>

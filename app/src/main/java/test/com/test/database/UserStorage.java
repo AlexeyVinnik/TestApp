@@ -36,7 +36,7 @@ public class UserStorage {
 
     protected UserInfo toEntity(Cursor c) {
         UserInfo user = new UserInfo();
-        user.userid = c.getInt(c.getColumnIndex(ID));
+        user.userId = c.getInt(c.getColumnIndex(ID));
 
         User owner = new User();
         owner.name = c.getString(c.getColumnIndex(NAME));
@@ -51,7 +51,7 @@ public class UserStorage {
     protected ContentValues toContentValue(UserInfo userInfo) {
         ContentValues values = new ContentValues();
 
-        values.put(ID, userInfo.userid);
+        values.put(ID, userInfo.userId);
         values.put(NAME, userInfo.owner.name);
         values.put(SURNAME, userInfo.owner.surname);
         values.put(PHOTO, userInfo.owner.foto);

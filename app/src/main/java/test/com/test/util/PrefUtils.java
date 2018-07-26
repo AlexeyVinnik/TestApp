@@ -10,12 +10,12 @@ public class PrefUtils {
     private static final String PREF = "testapp_prefs.";
     private static final String USERS_LOADING_TIME = PREF + "users_loading_time";
 
-    public static void saveUsersLoadingTime(Context context, Date date) {
-        putString(context, USERS_LOADING_TIME, Utils.getStringDate(date));
+    public static void saveUsersLoadingTime(Context context, String syncDay) {
+        putString(context, USERS_LOADING_TIME, syncDay);
     }
 
-    public static Date getUsersLoadingDate(Context context) {
-        return Utils.getDateFromString(getString(context, USERS_LOADING_TIME));
+    public static String getUsersLoadingDate(Context context) {
+        return getString(context, USERS_LOADING_TIME);
     }
 
 

@@ -18,25 +18,23 @@ public class BaseStorage {
     private SQLiteDatabase mDb;
 
     private static volatile BaseStorage sInstance;
-    private Context mContext;
     private UserStorage mUserStorage;
     private VehicleStorage mVehicleStorage;
 
     public static synchronized BaseStorage getInstance(Context context){
         if(sInstance == null)
-            sInstance = new BaseStorage(context.getApplicationContext());
+            sInstance = new BaseStorage(context);
         return sInstance;
     }
 
     private BaseStorage(Context context) {
-        mContext = context;
-        open();
+        open(context);
         mUserStorage = new UserStorage(mDb);
         mVehicleStorage = new VehicleStorage(mDb);
     }
 
-    private BaseStorage open(){
-        mDbHelper = new DatabaseHelper(mContext);
+    private BaseStorage open(Context context){
+        mDbHelper = new DatabaseHelper(context);
         mDb = mDbHelper.getWritableDatabase();
 
         return this;

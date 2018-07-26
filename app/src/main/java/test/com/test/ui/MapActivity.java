@@ -33,6 +33,7 @@ import java.util.List;
 import pub.devrel.easypermissions.AfterPermissionGranted;
 import pub.devrel.easypermissions.AppSettingsDialog;
 import pub.devrel.easypermissions.EasyPermissions;
+import test.com.test.App;
 import test.com.test.R;
 import test.com.test.database.BaseStorage;
 import test.com.test.database.VehicleStorage;
@@ -99,7 +100,7 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
 
         buildVehicleLocationRequest(mUserID);
 
-        mVehicleStorage = BaseStorage.getInstance(MapActivity.this).getVehicleStorage();
+        mVehicleStorage = BaseStorage.getInstance(App.getInstance()).getVehicleStorage();
         mVehicles = new ArrayList<>();
 
         mLocationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
@@ -119,7 +120,7 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
                 new Response.Listener<VehicleLocations>() {
                     @Override
                     public void onResponse(final VehicleLocations response) {
-                        initiateSaveVehLocTask(MapActivity.this, response.data);
+                        initiateSaveVehLocTask(response.data);
 
 //                        mHandler.postDelayed(mUpdatePosRunnable, UPDATE_VEHICLE_LOC_DELAY);
                     }
@@ -127,11 +128,12 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
                 new Response.ErrorListener() {
                     @Override
                     public void onErrorResponse(VolleyError error) {
-                        Logger.log_e(NetworkUtils.getErrorMessage(MapActivity.this, error), error);
+                        String errorMessage = NetworkUtils.getErrorMessage(MapActivity.this, error);
+                        Logger.log_e(errorMessage, error);
                         mHandler.postDelayed(mUpdatePosRunnable, UPDATE_VEHICLE_LOC_DELAY);
 
                         if (mMarkers.size() == 0) {
-                            Toast.makeText(MapActivity.this, R.string.error_unknown_vehicle_locations, Toast.LENGTH_SHORT).show();
+                            Toast.makeText(MapActivity.this, errorMessage, Toast.LENGTH_SHORT).show();
                         }
                     }
                 });
@@ -152,7 +154,7 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
         if (mGetVehicleLocationsAsyncTask != null) {
             mGetVehicleLocationsAsyncTask.cancel(false);
         }
-        mGetVehicleLocationsAsyncTask = new GetVehicleLocationsAsyncTask(MapActivity.this, false);
+        mGetVehicleLocationsAsyncTask = new GetVehicleLocationsAsyncTask(false);
         mGetVehicleLocationsAsyncTask.execute();
     }
 
@@ -334,11 +336,9 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
 
     private class SaveVehLocationsAsyncTask extends AsyncTask<Void, Void, Void> {
 
-        private Context mCtx;
         private ArrayList<VehicleLocation> mVehicleLocations;
 
-        public SaveVehLocationsAsyncTask(Context ctx, ArrayList<VehicleLocation> locations) {
-            mCtx = ctx;
+        public SaveVehLocationsAsyncTask(ArrayList<VehicleLocation> locations) {
             mVehicleLocations = locations;
         }
 
@@ -363,28 +363,26 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
         protected void onPostExecute(Void aVoid) {
             super.onPostExecute(aVoid);
 
-            initiateGetVehLocTask(mCtx, true);
+            initiateGetVehLocTask(true);
         }
     }
 
     private class GetVehicleLocationsAsyncTask extends AsyncTask<Void, Void, Boolean> {
 
-        private Context mContext;
         private ArrayList<Vehicle> mVehicleList;
 
         private boolean mIsServerChecked;
         private String mErrorMessage;
 
-        public GetVehicleLocationsAsyncTask(Context context, boolean IsServerChecked) {
-            mContext = context;
+        public GetVehicleLocationsAsyncTask(boolean IsServerChecked) {
             mVehicleList = new ArrayList<>();
             mIsServerChecked = IsServerChecked;
-            mErrorMessage = mContext.getString(R.string.error_unknown);
+            mErrorMessage = App.getInstance().getString(R.string.error_unknown);
         }
 
         @Override
         protected Boolean doInBackground(Void... voids) {
-            if (mContext == null || mVehicleStorage == null) {
+            if (mVehicleStorage == null) {
                 return false;
             }
 
@@ -399,7 +397,7 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
             Date lastUpdate = mVehicleList.get(0).lastUpdate;
 
             if (lastUpdate == null) {
-                mErrorMessage = mContext.getString(R.string.error_unknown_vehicle_locations);
+                mErrorMessage = App.getInstance().getString(R.string.error_unknown_vehicle_locations);
 
                 Logger.log(mErrorMessage);
                 return false;
@@ -418,10 +416,10 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
 
             // when there are not valid markers
             if (!aBoolean) {
-                if (mContext != null && mHandler != null) {
+                if (mHandler != null) {
 
                     if (mIsServerChecked) {
-                        Toast.makeText(mContext, mErrorMessage, Toast.LENGTH_SHORT).show();
+                        Toast.makeText(MapActivity.this, mErrorMessage, Toast.LENGTH_SHORT).show();
                         mHandler.postDelayed(mUpdatePosRunnable, UPDATE_VEHICLE_LOC_DELAY);
                     } else {
                         mHandler.post(mUpdatePosRunnable);
@@ -431,9 +429,7 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
                     Logger.log("Can not initiate updates for vehicles");
                 }
 
-                return;
-
-            } else if (mContext != null && mMap != null && mHandler != null) {
+            } else if (mMap != null && mHandler != null) {
 
                 removeMarkers();
                 mVehicles = mVehicleList;
@@ -447,11 +443,11 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
                 }
 
                 if (latLng != null) {
-                    mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng, 9));
+                    mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng, 9)); // 9 - zoom level on the map
                 }
 
                 mMap.setInfoWindowAdapter(new MarkerAdapter(MapActivity.this.getLayoutInflater(),
-                        mVehicles, mContext, mRouteOnMap));
+                        mVehicles, MapActivity.this, mRouteOnMap));
 
                 mHandler.postDelayed(mUpdatePosRunnable, UPDATE_VEHICLE_LOC_DELAY);
 
@@ -461,24 +457,22 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
         }
     }
 
-    private void initiateGetVehLocTask(Context context, boolean isServerChecked) {
+    private void initiateGetVehLocTask(boolean isServerChecked) {
         if (mGetVehicleLocationsAsyncTask != null) {
             mGetVehicleLocationsAsyncTask.cancel(false);
         }
-        if (context != null) {
-            mGetVehicleLocationsAsyncTask = new GetVehicleLocationsAsyncTask(context, isServerChecked);
-            mGetVehicleLocationsAsyncTask.execute();
-        }
+
+        mGetVehicleLocationsAsyncTask = new GetVehicleLocationsAsyncTask(isServerChecked);
+        mGetVehicleLocationsAsyncTask.execute();
     }
 
-    private void initiateSaveVehLocTask(Context context, ArrayList<VehicleLocation> locations) {
+    private void initiateSaveVehLocTask(ArrayList<VehicleLocation> locations) {
         if (mSaveVehicleLocationsAsyncTask != null) {
             mSaveVehicleLocationsAsyncTask.cancel(false);
         }
-        if (context != null) {
-            mSaveVehicleLocationsAsyncTask = new SaveVehLocationsAsyncTask(context, locations);
-            mSaveVehicleLocationsAsyncTask.execute();
-        }
+
+        mSaveVehicleLocationsAsyncTask = new SaveVehLocationsAsyncTask(locations);
+        mSaveVehicleLocationsAsyncTask.execute();
     }
 
     private Runnable mUpdatePosRunnable = new Runnable() {
